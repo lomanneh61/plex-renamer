@@ -1,0 +1,20 @@
+paths:
+  src: "/path/to/input"
+  dest: "/path/to/output"
+  review: "/path/to/review"
+
+behavior:
+  dry_run: false
+  move: false
+  sequential_numbering: true
+  alphabetical_order: true
+
+guesser:
+  enable: true
+  default_album: "Unsorted album"
+  default_artist: "Unknown Speaker"
+  keywords:
+    - "Keywords here"
+    - "Keywords here"
+    - "Keywords here"
+  keyword_album: "keyword album"

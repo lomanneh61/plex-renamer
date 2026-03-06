@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plex-renamer"
+version = "0.1.0"
+description = "Hybrid Plex music renamer with patterns, guessing, and automation."
+requires-python = ">=3.10"
+dependencies = [
+  "mutagen",
+  "PyYAML",
+  "flask",
+]
+
+[project.scripts]
+plex-renamer = "plex_renamer.cli:main"
