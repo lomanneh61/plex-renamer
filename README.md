@@ -4,14 +4,6 @@ A universal, media‑server‑friendly audio renamer that produces clean, predic
 
 
 
-
-
-
-
-
-
-
-
 🚀 Example Usage
 
 bash
@@ -30,7 +22,7 @@ Artist/
 
 &nbsp;       01 - Cleaned Title.ext
 
-You can explore this more with:
+Explore more:
 
 
 
@@ -78,7 +70,7 @@ pyproject.toml
 
 README.md
 
-You can explore this more with:
+Explore more:
 
 
 
@@ -128,9 +120,11 @@ Detects disc numbers from folder names or filenames
 
 Formats album folders as:
 
+
+
+Code
+
 Album (Disc 01)
-
-
 
 4\. Final Path Builder
 
@@ -146,13 +140,13 @@ Artist/
 
 &nbsp;       01 - Title.ext
 
-🛠️ Installation
+🛠 Installation
 
 bash
 
 pip install -e .
 
-You can explore this more with:
+Explore more:
 
 
 
@@ -170,7 +164,7 @@ bash
 
 pytest -v
 
-You can explore this more with:
+Explore more:
 
 
 
@@ -181,6 +175,8 @@ running tests
 🏷️ Versioning
 
 This project follows semantic versioning.
+
+
 
 To create a release:
 
