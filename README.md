@@ -26,6 +26,76 @@ Explore more:
 
 
 
+📸 Before \& After Renaming
+
+A quick visual of how plex-renamer transforms messy, inconsistent filenames into clean, media‑server‑friendly structure.
+
+
+
+Before
+
+
+
+ExampleMusic3.wav
+
+Track\_07\_final.wav
+
+audiofile   12   .mp3
+
+01--intro.WAV
+
+randomfile.wav
+
+
+
+After
+
+
+
+Unknown Artist/
+
+&nbsp;   Example my track/
+
+&nbsp;       03 - Example my track 3.wav
+
+
+
+Unknown Artist/
+
+&nbsp;   Unknown Album/
+
+&nbsp;       07 - Track 07 Final.mp3
+
+
+
+Unknown Artist/
+
+&nbsp;   Unknown Album/
+
+&nbsp;       12 - Audiofile 12.mp3
+
+
+
+Unknown Artist/
+
+&nbsp;   Unknown Album/
+
+&nbsp;       01 - Intro.wav
+
+
+
+Unknown Artist/
+
+&nbsp;   Unknown Album/
+
+&nbsp;       01 - Randomfile.wav
+
+
+
+
+
+
+
 folder structure rules
 
 
