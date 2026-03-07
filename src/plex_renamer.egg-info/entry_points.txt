@@ -1,0 +1,2 @@
+[console_scripts]
+plex-renamer = plex_renamer.cli:main

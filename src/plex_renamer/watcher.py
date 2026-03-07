@@ -2,6 +2,7 @@ import subprocess
 from .config import load_config
 from .core import rename_path
 
+
 def watch(config_path: str):
     cfg = load_config(config_path, {})
     src = cfg.paths.src

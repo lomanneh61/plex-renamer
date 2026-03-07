@@ -1,0 +1,17 @@
+LICENSE.txt
+README.md
+pyproject.toml
+src/plex_renamer/__init__.py
+src/plex_renamer/cli.py
+src/plex_renamer/config.py
+src/plex_renamer/core.py
+src/plex_renamer/guesser.py
+src/plex_renamer/patterns.py
+src/plex_renamer/watcher.py
+src/plex_renamer/webapp.py
+src/plex_renamer.egg-info/PKG-INFO
+src/plex_renamer.egg-info/SOURCES.txt
+src/plex_renamer.egg-info/dependency_links.txt
+src/plex_renamer.egg-info/entry_points.txt
+src/plex_renamer.egg-info/requires.txt
+src/plex_renamer.egg-info/top_level.txt

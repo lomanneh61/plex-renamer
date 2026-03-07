@@ -12,6 +12,7 @@ DEFAULT_PATTERNS: list[re.Pattern] = [
     re.compile(r"^(?P<title>.+)$"),
 ]
 
+
 def compile_patterns(pattern_strings: Iterable[str] | None) -> list[re.Pattern]:
     if not pattern_strings:
         return DEFAULT_PATTERNS

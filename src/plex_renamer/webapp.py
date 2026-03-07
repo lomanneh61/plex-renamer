@@ -4,6 +4,7 @@ from pathlib import Path
 from .config import load_config
 from .core import rename_path
 
+
 def main():
     parser = argparse.ArgumentParser(description="Plex Music Renamer")
     parser.add_argument("src", nargs="?", help="Source folder")

@@ -1,15 +1,17 @@
 import re
 from dataclasses import dataclass
 
+
 @dataclass
 class GuessResult:
     artist: str | None = None
     album: str | None = None
 
+
 def smart_guess(filename: str, folder_name: str, cfg: dict) -> GuessResult:
-    keywords = cfg.get("keywords", [])
-    default_album = cfg.get("default_album", folder_name)
-    default_artist = cfg.get("default_artist", folder_name)
+    keywords = cfg.keywords
+    default_album = cfg.default_album or folder_name
+    default_artist = cfg.default_artist or folder_name
 
     name = filename.lower()
     album = default_album

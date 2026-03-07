@@ -11,16 +11,20 @@ from .patterns import compile_patterns
 from .guesser import smart_guess
 from .config import Config
 
+
 def _clean(s: str | None) -> str:
     if not s:
         return ""
     import re
+
     s = s.replace("+", " ")
     s = re.sub(r"\s+", " ", s).strip()
     return "".join(c for c in s if c not in '/\\:*?"<>|')
 
+
 def _title_case(s: str) -> str:
     return s.title()
+
 
 def _extract_tags(path: Path) -> dict | None:
     audio = MutagenFile(path, easy=True)
@@ -47,6 +51,7 @@ def _extract_tags(path: Path) -> dict | None:
         "disc": disc,
     }
 
+
 def _parse_filename(filename: str, patterns: Iterable) -> dict | None:
     for pattern in patterns:
         m = pattern.match(filename)
@@ -59,11 +64,14 @@ def _parse_filename(filename: str, patterns: Iterable) -> dict | None:
             return {k: _clean(v) for k, v in data.items()}
     return None
 
+
 _track_counters: dict[str, int] = defaultdict(int)
+
 
 def _next_track(folder_key: str) -> str:
     _track_counters[folder_key] += 1
     return f"{_track_counters[folder_key]:02d}"
+
 
 def rename_path(root: Path, cfg: Config, log_file) -> None:
     patterns = compile_patterns(cfg.patterns)
@@ -74,14 +82,25 @@ def rename_path(root: Path, cfg: Config, log_file) -> None:
         for name in files:
             _process_file(dirpath / name, cfg, patterns, log_file)
 
+
 def _process_file(path: Path, cfg: Config, patterns, log_file) -> None:
     filename = path.name
-    ext = path.suffix
+
+    # Extract the real extension (lowercase)
+    ext = path.suffix.lower()
+
+    # Strip ALL extensions from the filename
+    # Example: "Example test.Wav.wav" → "Example test"
+    clean_stem = path.name.split('.')[0]
+
     parent = _clean(path.parent.name)
 
+    # Try metadata tags first
     meta = _extract_tags(path)
+
     if not meta:
-        parsed = _parse_filename(filename, patterns)
+        # Try filename patterns using the clean stem
+        parsed = _parse_filename(clean_stem, patterns)
         if parsed:
             meta = parsed
             if meta["track"] in ("00", "0", "") and cfg.behavior.sequential_numbering:
@@ -89,12 +108,15 @@ def _process_file(path: Path, cfg: Config, patterns, log_file) -> None:
             meta.setdefault("artist", parent)
             meta.setdefault("album", parent)
         else:
-            guess = smart_guess(filename, parent, cfg.guesser)
+            # Fallback to guesser
+            guess = smart_guess(clean_stem, parent, cfg.guesser)
             meta = {
                 "artist": _clean(guess.artist or parent),
                 "album": _clean(guess.album or parent),
-                "title": _clean(filename),
-                "track": _next_track(parent) if cfg.behavior.sequential_numbering else "00",
+                "title": _clean(clean_stem),
+                "track": _next_track(parent)
+                if cfg.behavior.sequential_numbering
+                else "00",
                 "disc": "01",
             }
 
@@ -104,11 +126,12 @@ def _process_file(path: Path, cfg: Config, patterns, log_file) -> None:
     if meta.get("disc") and meta["disc"] != "01":
         album_folder = f"{meta['album']} (Disc {meta['disc']})"
 
-    dest_dir = cfg.paths.dest / meta["artist"] / album_folder
+    dest_dir: Path = cfg.paths.dest / meta["artist"] / album_folder
     dest_dir.mkdir(parents=True, exist_ok=True)
 
     new_name = f"{meta['track']} - {meta['title']}{ext}"
-    dest_path = dest_dir / new_name
+
+    dest_path: Path = dest_dir / new_name
 
     log_file.write(f"{path} -> {dest_path}\n")
 
