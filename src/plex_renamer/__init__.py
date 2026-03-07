@@ -1,3 +1,2 @@
-from .core import rename_path
+__all__ = []
 
-__all__ = ["rename_path"]

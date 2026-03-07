@@ -1,144 +1,77 @@
+# core.py — Final Universal Version
+
 from __future__ import annotations
-import os
-import shutil
-from collections import defaultdict
 from pathlib import Path
-from typing import Iterable
+from typing import Optional
 
-from mutagen import File as MutagenFile
-
-from .patterns import compile_patterns
-from .guesser import smart_guess
-from .config import Config
+from .title_normalizer import normalize_title
+from .disc_detector import detect_disc, format_disc_folder
+from .detection import detect_album_artist_title
 
 
-def _clean(s: str | None) -> str:
-    if not s:
-        return ""
-    import re
+def build_final_path(
+    src: Path,
+    artist: Optional[str],
+    album: Optional[str],
+    disc: Optional[str],
+    track_number: Optional[int],
+    title: Optional[str],
+    output_root: Path,
+) -> Path:
+    """
+    Build the final destination path:
+    Artist / Album (Disc 01) / 01 - Cleaned Title.ext
+    """
 
-    s = s.replace("+", " ")
-    s = re.sub(r"\s+", " ", s).strip()
-    return "".join(c for c in s if c not in '/\\:*?"<>|')
+    # Fallbacks
+    artist = artist or "Unknown Artist"
+    album = album or "Unknown Album"
+    title = title or src.stem
 
+    # Disc folder (Album or Album (Disc 01))
+    album_folder = format_disc_folder(album, disc)
 
-def _title_case(s: str) -> str:
-    return s.title()
-
-
-def _extract_tags(path: Path) -> dict | None:
-    audio = MutagenFile(path, easy=True)
-    if not audio:
-        return None
-
-    artist = audio.get("artist", [None])[0]
-    album = audio.get("album", [None])[0]
-    title = audio.get("title", [None])[0]
-    track = audio.get("tracknumber", [None])[0]
-    disc = audio.get("discnumber", ["1"])[0]
-
-    if not all([artist, album, title, track]):
-        return None
-
-    track = str(track).split("/")[0].zfill(2)
-    disc = str(disc).split("/")[0].zfill(2)
-
-    return {
-        "artist": _clean(artist),
-        "album": _clean(album),
-        "title": _clean(title),
-        "track": track,
-        "disc": disc,
-    }
-
-
-def _parse_filename(filename: str, patterns: Iterable) -> dict | None:
-    for pattern in patterns:
-        m = pattern.match(filename)
-        if m:
-            data = m.groupdict()
-            data.setdefault("track", "00")
-            data.setdefault("title", "Unknown Title")
-            data.setdefault("disc", "01")
-            data["track"] = str(data["track"]).zfill(2)
-            return {k: _clean(v) for k, v in data.items()}
-    return None
-
-
-_track_counters: dict[str, int] = defaultdict(int)
-
-
-def _next_track(folder_key: str) -> str:
-    _track_counters[folder_key] += 1
-    return f"{_track_counters[folder_key]:02d}"
-
-
-def rename_path(root: Path, cfg: Config, log_file) -> None:
-    patterns = compile_patterns(cfg.patterns)
-    for dirpath, _, files in os.walk(root):
-        dirpath = Path(dirpath)
-        if cfg.behavior.alphabetical_order:
-            files = sorted(files, key=str.lower)
-        for name in files:
-            _process_file(dirpath / name, cfg, patterns, log_file)
-
-
-def _process_file(path: Path, cfg: Config, patterns, log_file) -> None:
-    filename = path.name
-
-    # Extract the real extension (lowercase)
-    ext = path.suffix.lower()
-
-    # Strip ALL extensions from the filename
-    # Example: "Example test.Wav.wav" → "Example test"
-    clean_stem = path.name.split('.')[0]
-
-    parent = _clean(path.parent.name)
-
-    # Try metadata tags first
-    meta = _extract_tags(path)
-
-    if not meta:
-        # Try filename patterns using the clean stem
-        parsed = _parse_filename(clean_stem, patterns)
-        if parsed:
-            meta = parsed
-            if meta["track"] in ("00", "0", "") and cfg.behavior.sequential_numbering:
-                meta["track"] = _next_track(parent)
-            meta.setdefault("artist", parent)
-            meta.setdefault("album", parent)
-        else:
-            # Fallback to guesser
-            guess = smart_guess(clean_stem, parent, cfg.guesser)
-            meta = {
-                "artist": _clean(guess.artist or parent),
-                "album": _clean(guess.album or parent),
-                "title": _clean(clean_stem),
-                "track": _next_track(parent)
-                if cfg.behavior.sequential_numbering
-                else "00",
-                "disc": "01",
-            }
-
-    meta["title"] = _title_case(meta["title"])
-
-    album_folder = meta["album"]
-    if meta.get("disc") and meta["disc"] != "01":
-        album_folder = f"{meta['album']} (Disc {meta['disc']})"
-
-    dest_dir: Path = cfg.paths.dest / meta["artist"] / album_folder
-    dest_dir.mkdir(parents=True, exist_ok=True)
-
-    new_name = f"{meta['track']} - {meta['title']}{ext}"
-
-    dest_path: Path = dest_dir / new_name
-
-    log_file.write(f"{path} -> {dest_path}\n")
-
-    if cfg.behavior.dry_run:
-        return
-
-    if cfg.behavior.move:
-        shutil.move(path, dest_path)
+    # Track prefix (01 - Title.ext)
+    if track_number:
+        track_str = f"{track_number:02d}"
+        filename = f"{track_str} - {title}{src.suffix}"
     else:
-        shutil.copy2(path, dest_path)
+        filename = f"{title}{src.suffix}"
+
+    return output_root / artist / album_folder / filename
+
+def process_file(src: Path, output_root: Path) -> Path:
+    """
+    Main renaming pipeline using universal detection rules.
+    """
+
+    # ---------------------------------------
+    # 1. Detect metadata (artist, album, title, track)
+    # ---------------------------------------
+    artist, album, title, track_number = detect_album_artist_title(src)
+
+    # ---------------------------------------
+    # 2. Normalize album + title
+    # ---------------------------------------
+    album_clean = normalize_title(album) or album
+    title_clean = normalize_title(title) or title
+
+    # ---------------------------------------
+    # 3. Disc detection
+    # ---------------------------------------
+    disc = detect_disc(src)
+
+    # ---------------------------------------
+    # 4. Build final path
+    # ---------------------------------------
+    final_path = build_final_path(
+        src=src,
+        artist=artist,
+        album=album_clean,
+        disc=disc,
+        track_number=track_number,
+        title=title_clean,
+        output_root=output_root,
+    )
+
+    return final_path

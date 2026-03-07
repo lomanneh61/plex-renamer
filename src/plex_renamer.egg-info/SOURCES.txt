@@ -2,11 +2,16 @@ LICENSE.txt
 README.md
 pyproject.toml
 src/plex_renamer/__init__.py
+src/plex_renamer/__main__.py
+src/plex_renamer/auto_detect.py
 src/plex_renamer/cli.py
 src/plex_renamer/config.py
 src/plex_renamer/core.py
+src/plex_renamer/detection.py
+src/plex_renamer/disc_detector.py
 src/plex_renamer/guesser.py
 src/plex_renamer/patterns.py
+src/plex_renamer/title_normalizer.py
 src/plex_renamer/watcher.py
 src/plex_renamer/webapp.py
 src/plex_renamer.egg-info/PKG-INFO

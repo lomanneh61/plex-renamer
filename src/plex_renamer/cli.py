@@ -1,34 +1,52 @@
+from __future__ import annotations
 import argparse
 from pathlib import Path
+import shutil
+import logging
 
-from .config import load_config
-from .core import rename_path
+from .core import process_file
+
+logger = logging.getLogger(__name__)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Plex Music Renamer")
-    parser.add_argument("src", nargs="?", help="Source folder")
-    parser.add_argument("dest", nargs="?", help="Destination folder")
-    parser.add_argument("--review", help="Review folder")
-    parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--move", action="store_true")
-    parser.add_argument("--config", help="YAML config file")
-    parser.add_argument("--log", default="renamer.log")
+def setup_logging(verbose: bool) -> None:
+    level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(
+        level=level,
+        format="%(levelname)s: %(message)s",
+    )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Neutral audio file renamer")
+    parser.add_argument("source", type=Path, help="Source folder with audio files")
+    parser.add_argument("output", type=Path, help="Destination root folder")
+    parser.add_argument("-n", "--dry-run", action="store_true", help="Show what would happen, but do not move/copy")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose logging")
 
     args = parser.parse_args()
+    setup_logging(args.verbose)
 
-    cli_args = {
-        "src": args.src,
-        "dest": args.dest,
-        "review": args.review,
-        "dry_run": args.dry_run,
-        "move": args.move,
-    }
+    src_root: Path = args.source
+    out_root: Path = args.output
 
-    cfg = load_config(args.config, cli_args)
+    if not src_root.exists():
+        logger.error("Source folder does not exist: %s", src_root)
+        raise SystemExit(1)
 
-    cfg.paths.dest.mkdir(parents=True, exist_ok=True)
-    cfg.paths.review.mkdir(parents=True, exist_ok=True)
+    files = [p for p in src_root.rglob("*") if p.is_file()]
+    if not files:
+        logger.info("No files found in %s", src_root)
+        return
 
-    with open(args.log, "w", encoding="utf-8") as log:
-        rename_path(cfg.paths.src, cfg, log)
+    for src in files:
+        dest = process_file(src, out_root)
+        logger.info("→ %s", dest)
+
+        if not args.dry_run:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
+
+
+if __name__ == "__main__":
+    main()
