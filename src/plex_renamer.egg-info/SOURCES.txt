@@ -10,6 +10,7 @@ src/plex_renamer/core.py
 src/plex_renamer/detection.py
 src/plex_renamer/disc_detector.py
 src/plex_renamer/guesser.py
+src/plex_renamer/metadata_reader.py
 src/plex_renamer/patterns.py
 src/plex_renamer/title_normalizer.py
 src/plex_renamer/watcher.py

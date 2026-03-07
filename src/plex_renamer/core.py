@@ -1,77 +1,63 @@
-# core.py — Final Universal Version
+# core.py
 
 from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from .title_normalizer import normalize_title
-from .disc_detector import detect_disc, format_disc_folder
-from .detection import detect_album_artist_title
+from .detection import detect_all
+from .sequencer import TrackSequencer
+
+
+sequencer = TrackSequencer()
+
+
+def format_disc_folder(album: str, disc: Optional[int]) -> str:
+    if disc:
+        return f"{album} (Disc {disc:02d})"
+    return album
 
 
 def build_final_path(
     src: Path,
     artist: Optional[str],
     album: Optional[str],
-    disc: Optional[str],
-    track_number: Optional[int],
+    disc: Optional[int],
+    track: Optional[int],
     title: Optional[str],
     output_root: Path,
 ) -> Path:
-    """
-    Build the final destination path:
-    Artist / Album (Disc 01) / 01 - Cleaned Title.ext
-    """
 
-    # Fallbacks
     artist = artist or "Unknown Artist"
     album = album or "Unknown Album"
     title = title or src.stem
 
-    # Disc folder (Album or Album (Disc 01))
     album_folder = format_disc_folder(album, disc)
 
-    # Track prefix (01 - Title.ext)
-    if track_number:
-        track_str = f"{track_number:02d}"
-        filename = f"{track_str} - {title}{src.suffix}"
+    if track:
+        filename = f"{track:02d} - {title}{src.suffix}"
     else:
         filename = f"{title}{src.suffix}"
 
     return output_root / artist / album_folder / filename
 
-def process_file(src: Path, output_root: Path) -> Path:
-    """
-    Main renaming pipeline using universal detection rules.
-    """
 
-    # ---------------------------------------
-    # 1. Detect metadata (artist, album, title, track)
-    # ---------------------------------------
-    artist, album, title, track_number = detect_album_artist_title(src)
+def process_file(src: Path, output_root: Path, verbose: bool = False) -> Path:
+    artist, album, title, track, disc = detect_all(src)
 
-    # ---------------------------------------
-    # 2. Normalize album + title
-    # ---------------------------------------
-    album_clean = normalize_title(album) or album
-    title_clean = normalize_title(title) or title
+    # Ask sequencer ONLY if track is missing
+    assigned = sequencer.get_track_number(src, track)
 
-    # ---------------------------------------
-    # 3. Disc detection
-    # ---------------------------------------
-    disc = detect_disc(src)
+    if assigned is not None:
+        track = assigned
+        if verbose:
+            print(f"[SEQ] Assigned track {track:02d} to {src.name}")
 
-    # ---------------------------------------
-    # 4. Build final path
-    # ---------------------------------------
-    final_path = build_final_path(
+    return build_final_path(
         src=src,
         artist=artist,
-        album=album_clean,
+        album=album,
         disc=disc,
-        track_number=track_number,
-        title=title_clean,
+        track=track,
+        title=title,
         output_root=output_root,
     )
-
-    return final_path
