@@ -1,80 +1,54 @@
-\# plex-renamer
+🎵 plex-renamer
+
+A universal, media‑server‑friendly audio renamer that produces clean, predictable folder structures for Plex, Jellyfin, Emby, Navidrome, and any other music server.
 
 
 
-A flexible, metadata-aware audio file renamer for mixed libraries (music, lectures, podcasts, anything).
 
 
 
-\- Neutral: no cultural or religious assumptions
-
-\- Modular: auto-detect, guessing, title normalization, disc detection
-
-\- Safe: folder-based fallbacks and confidence scoring
 
 
 
-\## Features
 
 
-
-\- Extracts artist, album, title, track, disc from filenames when possible
-
-\- Falls back to folder names and neutral guessing
-
-\- Normalizes titles (removes junk, numbers, separators)
-
-\- Handles multi-disc albums (`Album (Disc 01)`)
-
-\- Produces Plex/Jellyfin-friendly structure:
-
-
-
-```text
-
-Artist/
-
-&nbsp; Album (Disc 01)/
-
-&nbsp;   01 - Cleaned Title.ext
-
-Install
-
-bash
-
-pip install .
-
-(or use a virtualenv and pip install -e . for development)
-
-
-
-Usage
-
-From the repo root after install:
-
-
-
-bash
-
-plex-renamer /path/to/source /path/to/output
-
-source: folder containing your audio files
-
-
-
-output: destination root where the organized structure will be created
-
-
-
-Example
+🚀 Example Usage
 
 bash
 
 plex-renamer "D:/Audio Raw" "D:/Audio Library"
 
-Project Structure
+This scans your input folder, detects metadata, normalizes titles, detects discs and track numbers, and outputs a clean structure like:
 
-text
+
+
+Code
+
+Artist/
+
+&nbsp;   Album (Disc 01)/
+
+&nbsp;       01 - Cleaned Title.ext
+
+You can explore this more with:
+
+
+
+folder structure rules
+
+
+
+track numbering
+
+
+
+disc detection
+
+
+
+📁 Project Structure
+
+Code
 
 src/
 
@@ -84,25 +58,109 @@ src/
 
 &nbsp;   core.py
 
-&nbsp;   auto\_detect.py
+&nbsp;   detection.py
 
 &nbsp;   title\_normalizer.py
 
 &nbsp;   disc\_detector.py
 
-&nbsp;   guesser.py
-
 &nbsp;   cli.py
+
+
 
 tests/
 
 &nbsp; test\_core.py
 
+
+
 pyproject.toml
 
 README.md
 
-Development
+You can explore this more with:
+
+
+
+project structure
+
+
+
+🧠 How It Works
+
+1\. Metadata Detection
+
+Extracts album, title, track number, and optional artist
+
+
+
+Neutral, language‑agnostic, no cultural assumptions
+
+
+
+Works even with messy filenames
+
+
+
+2\. Title Normalization
+
+Removes junk characters
+
+
+
+Collapses whitespace
+
+
+
+Preserves track numbers
+
+
+
+Applies safe title‑casing
+
+
+
+3\. Disc Detection
+
+Detects disc numbers from folder names or filenames
+
+
+
+Formats album folders as:
+
+Album (Disc 01)
+
+
+
+4\. Final Path Builder
+
+Outputs:
+
+
+
+Code
+
+Artist/
+
+&nbsp;   Album (Disc 01)/
+
+&nbsp;       01 - Title.ext
+
+🛠️ Installation
+
+bash
+
+pip install -e .
+
+You can explore this more with:
+
+
+
+editable installs
+
+
+
+🧪 Development
 
 Run tests:
 
@@ -110,77 +168,27 @@ Run tests:
 
 bash
 
-pytest
+pytest -v
 
-License
-
-MIT
+You can explore this more with:
 
 
 
-Code
+running tests
 
 
 
----
+🏷️ Versioning
+
+This project follows semantic versioning.
+
+To create a release:
 
 
 
-\### 2. `pyproject.toml`
+bash
 
+git tag v1.0.0
 
-
-Create `pyproject.toml` in the repo root:
-
-
-
-```toml
-
-\[build-system]
-
-requires = \["setuptools>=61.0"]
-
-build-backend = "setuptools.build\_meta"
-
-
-
-\[project]
-
-name = "plex-renamer"
-
-version = "0.1.0"
-
-description = "Neutral, metadata-aware audio file renamer"
-
-readme = "README.md"
-
-requires-python = ">=3.9"
-
-license = { text = "MIT" }
-
-authors = \[
-
-&nbsp; { name = "LANDING" }
-
-]
-
-dependencies = \[]
-
-
-
-\[project.scripts]
-
-plex-renamer = "plex\_renamer.cli:main"
-
-
-
-\[tool.setuptools]
-
-package-dir = {"" = "src"}
-
-
-
-\[tool.setuptools.packages.find]
-
-where = \["src"]
+git push origin v1.0.0
 
